@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Keyboard, Image } from 'react-native';
 import Styles from './Styles';
 import dogpawpic from '../pictures/dog-paw-pic.png'
+import * as Location from 'expo-location';
+
 
 export default function Map() {
 
@@ -21,11 +23,28 @@ export default function Map() {
     const [loading, setLoading] = useState(false);
     const [dogParks, setDogParks] = useState([]);
 
+    /* Ask for permission to get location information - if given, update map to user's location */
+    useEffect(() => {
+        (async () => {
+            setLoading(true);
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('No permission to get location')
+                return;
+            }
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+            setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
+            setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+            setLoading(false);
+        })();
+    }, []);
 
 
 
     const apiKey = process.env.EXPO_PUBLIC_API_KEY;
 
+    /* Fetch coordinates of the given address */
     const fetchCoordinates = () => {
         setLoading(true);
         const apiKey = process.env.EXPO_PUBLIC_API_KEY;
@@ -85,6 +104,7 @@ export default function Map() {
                 region={mapRegion}>
                 <Marker
                     coordinate={coordinates}
+                    title="Sijaintisi"
                 >
                     <Image
                         source={dogpawpic}
