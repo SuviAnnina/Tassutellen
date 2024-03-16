@@ -88,12 +88,12 @@ export default function Map() {
     const fetchDogparkData = async () => {
         setLoading(true);
 
-        const urls = JSON.parse(process.env.EXPO_PUBLIC_DOGPARKS);
+        const urls = process.env.EXPO_PUBLIC_DOGPARKS.split(',');
 
         try {
             const responses = await Promise.all(urls.map(url => fetch(url)));
             const data = await Promise.all(responses.map(response => response.json()));
-            console.log('Dog park data:', JSON.stringify(data));
+            //console.log('Dog park data:', JSON.stringify(data));
 
             /* Map through all of the data + flatten result */
             const dogParkData = data.flatMap(allData => allData.results.map(dogpark => {
