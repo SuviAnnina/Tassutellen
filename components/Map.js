@@ -38,8 +38,8 @@ export default function Map() {
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
             setLoading(false);
         })();
+        fetchDogparkData();
     }, []);
-
 
 
     const apiKey = process.env.EXPO_PUBLIC_API_KEY;
@@ -47,11 +47,10 @@ export default function Map() {
     /* Fetch coordinates of the given address */
     const fetchCoordinates = () => {
         setLoading(true);
-        const apiKey = process.env.EXPO_PUBLIC_API_KEY;
         fetch(`https://geocode.maps.co/search?q=${address}&api_key=${apiKey}`)
             .then(response => {
                 if (!response)
-                    throw new Error("Error in fetch: " + response.statusText);
+                    throw new Error("Error in coordinates fetch: " + response.statusText);
                 return response.json();
             })
             .then(data => {
@@ -85,6 +84,44 @@ export default function Map() {
             })
     }
 
+    /* Fetch dog park data */
+    const fetchDogparkData = async () => {
+        setLoading(true);
+
+        const urls = JSON.parse(process.env.EXPO_PUBLIC_DOGPARKS);
+
+        try {
+            const responses = await Promise.all(urls.map(url => fetch(url)));
+            const data = await Promise.all(responses.map(response => response.json()));
+            console.log('Dog park data:', JSON.stringify(data));
+
+            /* Map through all of the data + flatten result */
+            const dogParkData = data.flatMap(allData => allData.results.map(dogpark => {
+
+                /* if dogpark does not have location or location coordinates, return null in its place */
+                if (!dogpark.location || !dogpark.location.coordinates) {
+                    return null;
+                }
+                return {
+                    /* Save name, address and location */
+                    name: dogpark.name && dogpark.name.fi ? dogpark.name.fi : "",
+                    address: dogpark.street_address && dogpark.street_address.fi ? dogpark.street_address.fi : "",
+                    location: {
+                        latitude: dogpark.location.coordinates[1],
+                        longitude: dogpark.location.coordinates[0]
+                    }
+                };
+
+                /* filter items: null items (parks without location) are filtered out */
+            }).filter(Boolean));
+
+            console.log(JSON.stringify(dogParkData));
+        } catch (error) {
+            console.error('Error fetching dog park data:', error);
+        }
+    }
+
+
     return (
         <>
             <View style={Styles.searchContainer}>
@@ -102,15 +139,18 @@ export default function Map() {
             <MapView
                 style={Styles.mapStyle}
                 region={mapRegion}>
+
+
+
                 <Marker
                     coordinate={coordinates}
-                    title="Sijaintisi"
-                >
+                    title="Sijaintisi">
                     <Image
                         source={dogpawpic}
                         style={{ width: 25, height: 25 }}
                     />
                 </Marker>
+
             </MapView>
 
         </>
