@@ -2,8 +2,11 @@ import MapView, { Marker } from 'react-native-maps';
 import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Keyboard, Image } from 'react-native';
 import Styles from './Styles';
-import dogpawpic from '../pictures/dog-paw-pic.png'
+import dogpawpic from '../pictures/dog-paw-pic.png';
 import * as Location from 'expo-location';
+
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 
 export default function Map() {
@@ -23,7 +26,7 @@ export default function Map() {
     const [loading, setLoading] = useState(false);
     const [dogParks, setDogParks] = useState([]);
 
-    /* Ask for permission to get location information - if given, update map to user's location */
+    /* Ask for permission to get location information */
     useEffect(() => {
         (async () => {
             setLoading(true);
@@ -32,6 +35,8 @@ export default function Map() {
                 Alert.alert('No permission to get location')
                 return;
             }
+
+            /* if permission is given, update map to user's location */
             let location = await Location.getCurrentPositionAsync({});
             setLocation(location);
             setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
@@ -42,11 +47,12 @@ export default function Map() {
     }, []);
 
 
-    const apiKey = process.env.EXPO_PUBLIC_API_KEY;
 
     /* Fetch coordinates of the given address */
     const fetchCoordinates = () => {
         setLoading(true);
+        const apiKey = process.env.EXPO_PUBLIC_API_KEY;
+
         fetch(`https://geocode.maps.co/search?q=${address}&api_key=${apiKey}`)
             .then(response => {
                 if (!response)
@@ -84,6 +90,11 @@ export default function Map() {
             })
     }
 
+    /* Firestore */
+    const firestoreConfig = JSON.parse(process.env.EXPO_PUBLIC_FIRESTORE);
+    const app = initializeApp(firestoreConfig);
+    const firestoreDB = getFirestore(app);
+
     /* Fetch dog park data */
     const fetchDogparkData = async () => {
         setLoading(true);
@@ -104,6 +115,7 @@ export default function Map() {
                 }
                 return {
                     /* Save name, address and location */
+                    id: dogpark.id,
                     name: dogpark.name && dogpark.name.fi ? dogpark.name.fi : "",
                     address: dogpark.street_address && dogpark.street_address.fi ? dogpark.street_address.fi : "",
                     location: {
@@ -115,11 +127,32 @@ export default function Map() {
                 /* filter items: null items (parks without location) are filtered out */
             }).filter(Boolean));
 
-            console.log(JSON.stringify(dogParkData));
+
+            //console.log(JSON.stringify(dogParkData));
+
+            // Iterate over dogParkData and add each document (dogpark object) to Firestore
+            if (dogParkData.length > 0) {
+                dogParkData.forEach(async (dogpark) => {
+                    try {
+                        const docRef = await addDoc(collection(firestoreDB, "dogparks"), dogpark);
+                        //console.log("Document written with ID " + docRef.id);
+                    } catch (error) {
+                        console.error("Error adding document to firestore database: " + error);
+                    }
+                });
+            } else {
+                console.log("No dogpark data");
+            }
+            setLoading(false);
+
         } catch (error) {
             console.error('Error fetching dog park data:', error);
         }
     }
+
+
+
+
 
 
     return (
