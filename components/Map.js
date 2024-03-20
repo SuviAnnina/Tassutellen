@@ -1,13 +1,9 @@
 import MapView, { Marker } from 'react-native-maps';
 import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Keyboard, Image } from 'react-native';
+import { View, TextInput, Button, Keyboard, Image } from 'react-native';
 import Styles from './Styles';
 import dogpawpic from '../pictures/dog-paw-pic.png';
 import * as Location from 'expo-location';
-
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
-
 
 export default function Map() {
 
@@ -24,15 +20,15 @@ export default function Map() {
     });
     const [location, setLocation] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [dogParks, setDogParks] = useState([]);
+
 
     /* Ask for permission to get location information */
     useEffect(() => {
         (async () => {
             setLoading(true);
             let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('No permission to get location')
+            if (status !== "granted") {
+                Alert.alert("No permission to get location")
                 return;
             }
 
@@ -43,7 +39,7 @@ export default function Map() {
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
             setLoading(false);
         })();
-        fetchDogparkData();
+
     }, []);
 
 
@@ -89,68 +85,6 @@ export default function Map() {
                 setLoading(false);
             })
     }
-
-    /* Firestore */
-    const firestoreConfig = JSON.parse(process.env.EXPO_PUBLIC_FIRESTORE);
-    const app = initializeApp(firestoreConfig);
-    const firestoreDB = getFirestore(app);
-
-    /* Fetch dog park data */
-    const fetchDogparkData = async () => {
-        setLoading(true);
-
-        const urls = process.env.EXPO_PUBLIC_DOGPARKS.split(',');
-
-        try {
-            const responses = await Promise.all(urls.map(url => fetch(url)));
-            const data = await Promise.all(responses.map(response => response.json()));
-            //console.log('Dog park data:', JSON.stringify(data));
-
-            /* Map through all of the data + flatten result */
-            const dogParkData = data.flatMap(allData => allData.results.map(dogpark => {
-
-                /* if dogpark does not have location or location coordinates, return null in its place */
-                if (!dogpark.location || !dogpark.location.coordinates) {
-                    return null;
-                }
-                return {
-                    /* Save name, address and location */
-                    id: dogpark.id,
-                    name: dogpark.name && dogpark.name.fi ? dogpark.name.fi : "",
-                    address: dogpark.street_address && dogpark.street_address.fi ? dogpark.street_address.fi : "",
-                    location: {
-                        latitude: dogpark.location.coordinates[1],
-                        longitude: dogpark.location.coordinates[0]
-                    }
-                };
-
-                /* filter items: null items (parks without location) are filtered out */
-            }).filter(Boolean));
-
-
-            //console.log(JSON.stringify(dogParkData));
-
-            // Iterate over dogParkData and add each document (dogpark object) to Firestore
-            if (dogParkData.length > 0) {
-                dogParkData.forEach(async (dogpark) => {
-                    try {
-                        const docRef = await addDoc(collection(firestoreDB, "dogparks"), dogpark);
-                        //console.log("Document written with ID " + docRef.id);
-                    } catch (error) {
-                        console.error("Error adding document to firestore database: " + error);
-                    }
-                });
-            } else {
-                console.log("No dogpark data");
-            }
-            setLoading(false);
-
-        } catch (error) {
-            console.error('Error fetching dog park data:', error);
-        }
-    }
-
-
 
 
 
