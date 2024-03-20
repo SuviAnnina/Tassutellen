@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, deleteDoc } from 'firebase/firestore';
 
@@ -7,7 +8,7 @@ const app = initializeApp(firestoreConfig);
 const firestoreDB = getFirestore(app);
 
 /* Fetch dog park data from API and save it to Firestore */
-export const fetchDogParkData = async () => {
+export const fetchDogParkAPIData = async () => {
     const urls = process.env.EXPO_PUBLIC_DOGPARKS.split(',');
     try {
         const responses = await Promise.all(urls.map(url => fetch(url)));
@@ -52,8 +53,21 @@ export const fetchDogParkData = async () => {
     } catch (error) {
         console.error("Error fetching dog park data: " + error);
     }
-}
+};
 
+/* Get dogparks from Firestore */
+export const DogParkDataFS = async () => {
+    try {
+        const querySnapshot = await getDocs(collection(firestoreDB, "dogparks"));
+
+        // map through all the documents in the collection and save them to data
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return data;
+    } catch (error) {
+        console.error("Error fetching dog park data: " + error);
+        return [];
+    }
+};
 
 // delete all documents in the "dogparks" collection
 export const deleteAllDocuments = async () => {

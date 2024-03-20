@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react';
 import { View, TextInput, Button, Keyboard, Image } from 'react-native';
 import Styles from './Styles';
 import dogpawpic from '../pictures/dog-paw-pic.png';
+import locationpic from '../pictures/location-pic.png';
 import * as Location from 'expo-location';
+import { DogParkDataFS } from './DogParkData';
 
 export default function Map() {
 
@@ -19,8 +21,18 @@ export default function Map() {
         longitudeDelta: 0.0221
     });
     const [location, setLocation] = useState(null);
+    const [allDogParkData, setAllDogParkData] = useState([]);
     const [loading, setLoading] = useState(false);
 
+
+    const fetchDogParkData = async () => {
+        try {
+            const data = await DogParkDataFS();
+            setAllDogParkData(data);
+        } catch (error) {
+            console.error("Error fetching dog park data: " + error);
+        }
+    };
 
     /* Ask for permission to get location information */
     useEffect(() => {
@@ -37,6 +49,9 @@ export default function Map() {
             setLocation(location);
             setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+
+            await fetchDogParkData();
+
             setLoading(false);
         })();
 
@@ -107,8 +122,6 @@ export default function Map() {
                 style={Styles.mapStyle}
                 region={mapRegion}>
 
-
-
                 <Marker
                     coordinate={coordinates}
                     title="Sijaintisi">
@@ -117,6 +130,22 @@ export default function Map() {
                         style={{ width: 25, height: 25 }}
                     />
                 </Marker>
+
+                {allDogParkData.map((dogpark, index) => (
+                    <Marker
+                        key={index}
+                        coordinate={{
+                            latitude: dogpark.location.latitude,
+                            longitude: dogpark.location.longitude,
+                        }}
+                        title={dogpark.name}
+                        description={dogpark.address}>
+                        <Image
+                            source={locationpic}
+                            style={{ width: 35, height: 35 }}
+                        />
+                    </Marker>
+                ))}
 
             </MapView>
 
