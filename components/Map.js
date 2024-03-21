@@ -4,8 +4,11 @@ import { View, TextInput, Button, Keyboard, Image } from 'react-native';
 import Styles from './Styles';
 import dogpawpic from '../pictures/dog-paw-pic.png';
 import locationpic from '../pictures/location-pic.png';
+import dogbeachpic from '../pictures/dogbeach-pic.png';
 import * as Location from 'expo-location';
 import { DogParkDataFS } from './DogParkData';
+import { fetchDogParkAPIData } from './DogParkData';
+import { deleteAllDocuments } from './DogParkData';
 
 export default function Map() {
 
@@ -25,7 +28,7 @@ export default function Map() {
     const [loading, setLoading] = useState(false);
 
 
-    const fetchDogParkData = async () => {
+    const getDogParkData = async () => {
         try {
             const data = await DogParkDataFS();
             setAllDogParkData(data);
@@ -50,14 +53,14 @@ export default function Map() {
             setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
 
-            await fetchDogParkData();
+            await getDogParkData(); // Dogparks are fetched from Firestore
+            //deleteAllDocuments(); // Delete all the dogpark documents from the collection
+            //fetchDogParkAPIData(); // Dogparks are fetched from API and stored to Firestore
 
             setLoading(false);
         })();
 
     }, []);
-
-
 
     /* Fetch coordinates of the given address */
     const fetchCoordinates = () => {
@@ -139,10 +142,10 @@ export default function Map() {
                             longitude: dogpark.location.longitude,
                         }}
                         title={dogpark.name}
-                        description={dogpark.address}>
+                        description={`${dogpark.address}, ${dogpark.city}`}>
                         <Image
                             source={locationpic}
-                            style={{ width: 35, height: 35 }}
+                            style={{ width: 30, height: 30 }}
                         />
                     </Marker>
                 ))}

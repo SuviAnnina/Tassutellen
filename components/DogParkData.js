@@ -1,11 +1,6 @@
-import { useState } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import firestoreDB from './Firestore';
 
-/* Firestore config */
-const firestoreConfig = JSON.parse(process.env.EXPO_PUBLIC_FIRESTORE);
-const app = initializeApp(firestoreConfig);
-const firestoreDB = getFirestore(app);
 
 /* Fetch dog park data from API and save it to Firestore */
 export const fetchDogParkAPIData = async () => {
@@ -21,11 +16,17 @@ export const fetchDogParkAPIData = async () => {
             if (!dogpark.location || !dogpark.location.coordinates) {
                 return null;
             }
+
+            const capitalizeFirstLetter = (str) => {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            };
+
             return {
-                /* Save id, name, address and location */
+                /* Save id, name, address, city and location */
                 id: dogpark.id,
                 name: dogpark.name && dogpark.name.fi ? dogpark.name.fi : "",
                 address: dogpark.street_address && dogpark.street_address.fi ? dogpark.street_address.fi : "",
+                city: capitalizeFirstLetter(dogpark.municipality),
                 location: {
                     latitude: dogpark.location.coordinates[1],
                     longitude: dogpark.location.coordinates[0]
@@ -47,8 +48,6 @@ export const fetchDogParkAPIData = async () => {
         } else {
             console.log("No dogpark data");
         }
-
-        setLoading(false);
 
     } catch (error) {
         console.error("Error fetching dog park data: " + error);
