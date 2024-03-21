@@ -7,8 +7,12 @@ import locationpic from '../pictures/location-pic.png';
 import dogbeachpic from '../pictures/dogbeach-pic.png';
 import * as Location from 'expo-location';
 import { DogParkDataFS } from './DogParkData';
+import { DogBeachDataFS } from './DogBeachData';
+
+import { fetchDogBeachAPIData } from './DogBeachData';
+import { deleteAllDogBeachDocuments } from './DogBeachData';
 import { fetchDogParkAPIData } from './DogParkData';
-import { deleteAllDocuments } from './DogParkData';
+import { deleteAllDogParkDocuments } from './DogParkData';
 
 export default function Map() {
 
@@ -25,15 +29,26 @@ export default function Map() {
     });
     const [location, setLocation] = useState(null);
     const [allDogParkData, setAllDogParkData] = useState([]);
+    const [allDogBeachData, setAllDogBeachData] = useState([]);
     const [loading, setLoading] = useState(false);
 
-
+    /* Get dog park data from Firestore */
     const getDogParkData = async () => {
         try {
-            const data = await DogParkDataFS();
-            setAllDogParkData(data);
+            const dogParkData = await DogParkDataFS();
+            setAllDogParkData(dogParkData);
         } catch (error) {
-            console.error("Error fetching dog park data: " + error);
+            console.error("Error fetching dog park data for rendering from Firestore: " + error);
+        }
+    };
+
+    /* Get dog beach data from Firestore */
+    const getDogBeachData = async () => {
+        try {
+            const dogBeachData = await DogBeachDataFS();
+            setAllDogBeachData(dogBeachData);
+        } catch (error) {
+            console.error("Error fetching dog beach data for rendering from Firestore: " + error);
         }
     };
 
@@ -54,8 +69,12 @@ export default function Map() {
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
 
             await getDogParkData(); // Dogparks are fetched from Firestore
-            //deleteAllDocuments(); // Delete all the dogpark documents from the collection
+            await getDogBeachData(); // Dogbeaches are feetched from Firestore
+
+            //deleteAllDogParkDocuments(); // Delete all dogpark documents from the collection
+            //deleteAllDogBeachDocuments(); // Delete all dogbeach documents from the collection
             //fetchDogParkAPIData(); // Dogparks are fetched from API and stored to Firestore
+            //fetchDogBeachAPIData(); // Dogbeaches are fetched from API and stored to Firestore
 
             setLoading(false);
         })();
@@ -150,6 +169,21 @@ export default function Map() {
                     </Marker>
                 ))}
 
+                {allDogBeachData.map((dogbeach, index) => (
+                    <Marker
+                        key={index}
+                        coordinate={{
+                            latitude: dogbeach.location.latitude - 0.00005,
+                            longitude: dogbeach.location.longitude - 0.00005,
+                        }}
+                        title={dogbeach.name}
+                        description={`${dogbeach.address}, ${dogbeach.city}`}>
+                        <Image
+                            source={dogbeachpic}
+                            style={{ width: 30, height: 30 }}
+                        />
+                    </Marker>
+                ))}
             </MapView>
 
         </>
