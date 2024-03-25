@@ -15,6 +15,7 @@
     "expo-location": "~16.5.5",
     "expo-status-bar": "~1.11.1",
     "firebase": "^10.9.0",
+    "firebaseui": "^6.1.0",
     "react": "18.2.0",
     "react-native": "0.73.5",
     "react-native-maps": "1.10.0",

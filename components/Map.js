@@ -53,32 +53,39 @@ export default function Map() {
     };
 
     /* Ask for permission to get location information */
-    useEffect(() => {
-        (async () => {
-            setLoading(true);
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-                Alert.alert("No permission to get location")
-                return;
-            }
+    const requestLocationPermission = async () => {
+        setLoading(true);
+        let { status } = await Location.requestForegroundPermissionsAsync();
 
+        if (status === "granted") {
             /* if permission is given, update map to user's location */
             let location = await Location.getCurrentPositionAsync({});
             setLocation(location);
             setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
             setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+        } else {
+            Alert.alert("Permission not given")
+        }
+        setLoading(false);
+    }
 
-            await getDogParkData(); // Dogparks are fetched from Firestore
-            await getDogBeachData(); // Dogbeaches are feetched from Firestore
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                requestLocationPermission();
+                await getDogParkData(); // Dogparks are fetched from Firestore
+                await getDogBeachData(); // Dogbeaches are feetched from Firestore
 
-            //deleteAllDogParkDocuments(); // Delete all dogpark documents from the collection
-            //deleteAllDogBeachDocuments(); // Delete all dogbeach documents from the collection
-            //fetchDogParkAPIData(); // Dogparks are fetched from API and stored to Firestore
-            //fetchDogBeachAPIData(); // Dogbeaches are fetched from API and stored to Firestore
+            } catch (error) {
+                console.error("Error fetching data: " + error);
+            }
 
-            setLoading(false);
-        })();
-
+        };
+        fetchData();
+        //deleteAllDogParkDocuments(); // Delete all dogpark documents from the collection
+        //deleteAllDogBeachDocuments(); // Delete all dogbeach documents from the collection
+        //fetchDogParkAPIData(); // Dogparks are fetched from API and stored to Firestore
+        //fetchDogBeachAPIData(); // Dogbeaches are fetched from API and stored to Firestore
     }, []);
 
     /* Fetch coordinates of the given address */
@@ -123,7 +130,17 @@ export default function Map() {
             })
     }
 
+    /* Mapview taken back to user's current location */
+    const currentLocation = () => {
+        if (location) {
+            setLocation(location);
+            setMapRegion({ ...mapRegion, latitude: location.coords.latitude, longitude: location.coords.longitude });
+            setCoordinates({ latitude: location.coords.latitude, longitude: location.coords.longitude });
 
+        } else {
+            requestLocationPermission();
+        }
+    }
 
 
     return (
@@ -134,14 +151,18 @@ export default function Map() {
             <View style={Styles.searchContainer}>
                 <TextInput
 
-                    placeholder="Syötä osoite tai postinumero"
-                    style={Styles.TextInput}
+                    placeholder="Syötä osoite tai paikka"
+                    style={Styles.textInput}
                     value={address}
                     onChangeText={text => setAddress(text)} />
 
                 <Button
                     title="Etsi"
                     onPress={fetchCoordinates} />
+
+                <Button
+                    title="Sijaintisi"
+                    onPress={currentLocation} />
             </View>
 
             <MapView

@@ -7,13 +7,12 @@ import Map from './components/Map';
 import Home from './components/Home';
 import Profile from './components/Profile';
 import { Feather } from "@expo/vector-icons";
+import Login from './components/Login';
 
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-
-
 
   return (
 
@@ -29,7 +28,10 @@ export default function App() {
               iconName = focused ? "home" : "home";
             } else if (route.name === "Profile") {
               iconName = focused ? "user" : "user";
+            } else if (route.name === "Login") {
+              iconName = focused ? "log-in" : "log-in";
             }
+
             return (
               <Feather
                 name={iconName}
@@ -50,6 +52,7 @@ export default function App() {
         <Tab.Screen name="Map" component={Map} options={{ headerShown: false }} />
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+        <Tab.Screen name="Login" component={Login} options={{ headerShown: false }} />
 
       </Tab.Navigator>
       <StatusBar style="auto" />
