@@ -39,6 +39,12 @@ const Styles = StyleSheet.create({
         justifyContent: "space-around"
     },
 
+    signOutButton: {
+        fontSize: 14,
+        backgroundColor: "#b34832",
+        borderRadius: 10,
+        padding: 5,
+    },
 
     mapStyle: {
         width: "100%",

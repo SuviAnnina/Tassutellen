@@ -1,23 +1,24 @@
-import { KeyboardAvoidingView, Text, View, TextInput, Image, TouchableOpacity } from "react-native";
+import { KeyboardAvoidingView, Text, View, TextInput, Image, TouchableOpacity, Alert } from "react-native";
 import Styles from "./Styles";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth } from "./Firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
 const Login = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    /*     const handleSignUp = () => {
-            auth
-                .createUserWithEmailAndPassword(email, password)
-                .then(userCredentials => {
-                    const user = userCredentials.user;
-                    console.log(user.email);
-                })
-                .catch(error => alert(error.message))
-        } */
+    /* useEffect(() => {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                Alert.alert("Jeejee!");
+            }
+        })
+    }, []) */
+
+
+
     const handleSignUp = () => {
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
@@ -25,7 +26,17 @@ const Login = () => {
                 console.log(user.email);
             })
             .catch((error) => {
-                console.error("An error occurred: " + error);
+                console.error("An error occurred during sign up: " + error);
+            })
+    }
+
+    const handleSignIn = () => {
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+            })
+            .catch((error) => {
+                console.error("An error occurred during login: " + error);
             })
     }
 
@@ -64,7 +75,7 @@ const Login = () => {
 
                         <TouchableOpacity
                             style={Styles.loginButton}
-                            onPress={() => { }}
+                            onPress={handleSignIn}
                         >
                             <Text style={Styles.loginButton}>Login</Text>
                         </TouchableOpacity>
