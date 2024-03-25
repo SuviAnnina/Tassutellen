@@ -1,6 +1,6 @@
 import MapView, { Marker } from 'react-native-maps';
 import { useState, useEffect } from 'react';
-import { View, TextInput, Button, Keyboard, Image } from 'react-native';
+import { View, TextInput, Button, Keyboard, Image, Text } from 'react-native';
 import Styles from './Styles';
 import dogpawpic from '../pictures/dog-paw-pic.png';
 import locationpic from '../pictures/location-pic.png';
@@ -128,8 +128,12 @@ export default function Map() {
 
     return (
         <>
+            <View style={Styles.headerContainer}>
+                <Text style={Styles.header}>Koirapuistot ja uimarannat kartalla</Text>
+            </View>
             <View style={Styles.searchContainer}>
                 <TextInput
+
                     placeholder="Syötä osoite tai postinumero"
                     style={Styles.TextInput}
                     value={address}

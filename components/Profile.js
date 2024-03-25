@@ -3,14 +3,14 @@ import Styles from './Styles';
 import { useState, useEffect } from 'react';
 
 
-export default function Home() {
+export default function Profile() {
 
 
 
     return (
         <>
             <View style={Styles.headerContainer}>
-                <Text style={Styles.header}>Kotinäkymä</Text>
+                <Text style={Styles.header}>Profiili</Text>
             </View>
         </>
     );
