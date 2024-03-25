@@ -1,13 +1,33 @@
 import { KeyboardAvoidingView, Text, View, TextInput, Image, TouchableOpacity } from "react-native";
 import Styles from "./Styles";
 import { useState } from "react";
+import { auth } from "./Firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const Login = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-
+    /*     const handleSignUp = () => {
+            auth
+                .createUserWithEmailAndPassword(email, password)
+                .then(userCredentials => {
+                    const user = userCredentials.user;
+                    console.log(user.email);
+                })
+                .catch(error => alert(error.message))
+        } */
+    const handleSignUp = () => {
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                console.log(user.email);
+            })
+            .catch((error) => {
+                console.error("An error occurred: " + error);
+            })
+    }
 
     return (
         <>
@@ -37,7 +57,7 @@ const Login = () => {
                     <View style={Styles.loginButtonContainer}>
                         <TouchableOpacity
                             style={Styles.signUpButton}
-                            onPress={() => { }}
+                            onPress={handleSignUp}
                         >
                             <Text style={Styles.signUpButton}>Sign up</Text>
                         </TouchableOpacity>

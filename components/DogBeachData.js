@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, deleteDoc } from 'firebase/firestore';
-import firestoreDB from './Firestore';
+import { firestoreDB } from './Firestore';
 
 /* Fetch dog beach data from API and save it to Firestore collection "dogbeaches" */
 export const fetchDogBeachAPIData = async () => {
